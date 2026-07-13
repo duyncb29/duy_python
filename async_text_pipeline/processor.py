@@ -13,7 +13,6 @@ class Summary(BaseModel):
     word_count: int
     text: str
 
-# Bộ nhớ đệm lưu trữ các văn bản đã xử lý
 _cache: dict[str, Summary] = {}
 
 
@@ -32,10 +31,7 @@ async def summarize(text: str) -> Summary:
     if text in _cache:
         return _cache[text]
     
-    # Giả lập thời gian xử lý của mô hình ngôn ngữ (1 giây)
     await asyncio.sleep(1)
-    
-    # Độ dài ký tự của văn bản
     word_count = len(text)
     content = "Summary: " + text
     print(f"Summarizing: word_count={word_count}")
@@ -78,7 +74,6 @@ def retry(times: int):
 # =====================================================================
 # BÀI 4: KIỂM SOÁT TẦN SUẤT GỌI (SEMAPHORE) VÀ HÀM CHẠY CHÍNH (MAIN)
 # =====================================================================
-# Giới hạn tối đa 3 tác vụ chạy đồng thời
 semaphore = asyncio.Semaphore(3)
 
 async def rate_limited_summarize(doc_content: str) -> Summary:
@@ -103,7 +98,6 @@ async def main():
     texts = await read_input_file(input_path)
     print(f"Đã tải {len(texts)} văn bản cần tóm tắt.\n")
     
-    # Thử nghiệm giới hạn Semaphore bằng cách chạy song song 3 tác vụ đầu tiên
     print("--- Chạy thử nghiệm 3 tác vụ đồng thời với Semaphore ---")
     task1 = asyncio.create_task(rate_limited_summarize(texts[0]))
     task2 = asyncio.create_task(rate_limited_summarize(texts[1]))
@@ -115,7 +109,6 @@ async def main():
     await task3
     print(f"Thời gian chạy 3 tác vụ: {time.perf_counter() - t:.4f} giây\n")
     
-    # Chạy xử lý đồng thời toàn bộ danh sách dữ liệu đầu vào
     print("--- Bắt đầu xử lý toàn bộ danh sách (call_llm) ---")
     with measure_time():
         results = await call_llm(texts)
