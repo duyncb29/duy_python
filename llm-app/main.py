@@ -1,21 +1,9 @@
 import asyncio
 import sys
 
-from pydantic import BaseModel, SecretStr
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import BaseModel
 
-
-class Settings(BaseSettings):
-    app_env: str = "development"
-    llm_api_key: SecretStr
-    llm_model: str = "gpt-4o"
-    timeout_seconds: int = 30
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore",
-    )
+from config import Settings
 
 
 class LLMRequest(BaseModel):

@@ -1,13 +1,19 @@
-# LLM App Setup & Environment (Topic 2)
+# LLM App & API Collector Workspace (Topic 2 & 3 Merged)
 
-Dự án này là một repo mẫu chuẩn hóa năm 2026 cho các ứng dụng tích hợp LLM. Dự án thể hiện cách thức thiết lập môi trường phát triển nhất quán và an toàn, quản lý các khóa bí mật thông qua tệp cấu hình `.env`, xác thực các biến cấu hình bằng `pydantic-settings`, và đảm bảo chất lượng mã nguồn bằng `Ruff` cùng `Mypy`.
+Dự án này là một repo mẫu chuẩn hóa năm 2026 tích hợp cả hai bài tập:
+1. **Topic 2 - Tooling & Môi trường (LLM App)**: Thiết lập cấu hình hệ thống, quản lý môi trường ảo với `uv` và linter/formatter với `Ruff` + `Mypy`.
+2. **Topic 3 - Trình thu thập dữ liệu API (API Collector)**: Xây dựng một pipeline thu thập dữ liệu bất đồng bộ chạy song song, chịu lỗi và validate dữ liệu mạnh mẽ.
+
+Hai phần được kết nối chặt chẽ thông qua hệ thống cấu hình tập trung trong `config.py` sử dụng `pydantic-settings` đọc trực tiếp từ `.env`.
 
 ## Các Công Cụ & Thư Viện Sử Dụng
 
 1. **Quản lý dự án & môi trường (`uv`)**: Công cụ quản lý gói tốc độ cực nhanh, thay thế hoàn toàn cho `pip`, `venv`, `poetry`.
 2. **Kiểm tra và Định dạng Code (`Ruff`)**: Bộ kiểm tra và định dạng mã nguồn Python siêu tốc, tích hợp đầy đủ các quy tắc chuẩn của Python.
 3. **Kiểm tra Kiểu Tĩnh (`Mypy`)**: Giúp phát hiện sớm các lỗi kiểu dữ liệu trong quá trình viết mã nguồn, có cấu hình strict check và tích hợp plugin của Pydantic.
-4. **Quản lý Cấu Hình (`pydantic-settings`)**: Tải biến cấu hình từ tệp `.env` với cơ chế xác thực mạnh mẽ (validate loại dữ liệu, bắt buộc khai báo API Key).
+4. **Xác thực Cấu hình (`pydantic-settings`)**: Tải biến cấu hình từ tệp `.env` với cơ chế xác thực mạnh mẽ (validate loại dữ liệu, ẩn API Key bằng `SecretStr`).
+5. **HTTP Client (`httpx`)**: Thư viện HTTP client bất đồng bộ mạnh mẽ và hiệu năng cao.
+6. **Thử lại tự động (`tenacity`)**: Cung cấp cơ chế retry thông minh với exponential backoff và jitter khi gặp lỗi mạng tạm thời.
 
 ## Cấu Trúc Dự Án
 
@@ -19,7 +25,10 @@ llm-app/
   ├── uv.lock            # File khóa phiên bản chính xác của dependencies
   ├── .env.example       # Mẫu biến môi trường
   ├── .env               # File cấu hình cục bộ (chứa API Key - không đẩy lên Git)
-  ├── main.py            # Mã nguồn chính chạy ứng dụng
+  ├── config.py          # Lớp cấu hình dùng chung (Settings) sử dụng pydantic-settings
+  ├── main.py            # Chạy giả lập gọi LLM (Topic 2)
+  ├── pipeline.py        # Chạy pipeline thu thập dữ liệu API (Topic 3)
+  ├── out.jsonl          # Tệp tin đầu ra chứa dữ liệu sạch đã được thu thập (JSON Lines)
   └── README.md          # Hướng dẫn này
 ```
 
@@ -53,17 +62,30 @@ APP_ENV=development
 LLM_API_KEY=sk-mock-api-key-from-env-file-12345
 LLM_MODEL=gpt-4o
 TIMEOUT_SECONDS=10
+
+# Cấu hình API Collector (Topic 3)
+COLLECTOR_BASE_URL=https://jsonplaceholder.typicode.com
+COLLECTOR_SEMAPHORE_LIMIT=10
+COLLECTOR_TIMEOUT_SECONDS=10
 ```
 
-### 3. Khởi chạy ứng dụng
+### 3. Chạy ứng dụng gọi LLM giả lập (Topic 2)
 
-Sử dụng `uv run` để khởi chạy ứng dụng chính một cách an toàn thông qua môi trường ảo vừa được tạo:
+Sử dụng `uv run` để chạy file `main.py`:
 
 ```bash
 python -m uv run python main.py
 ```
 
-Ứng dụng sẽ tự động tải các biến cấu hình từ `.env` (API Key sẽ được ẩn tự động dưới dạng `**********` để bảo mật khi in ra log nhờ sử dụng lớp `SecretStr` của Pydantic) và chạy giả lập một yêu cầu gọi LLM.
+### 4. Chạy trình thu thập dữ liệu API (Topic 3)
+
+Sử dụng `uv run` để chạy file `pipeline.py`:
+
+```bash
+python -m uv run python pipeline.py
+```
+
+Khi chạy, chương trình sẽ tự động nạp cấu hình API, giới hạn kết nối Semaphore và Timeout từ `.env` để tải song song 100 posts (trong đó có 5 ID lỗi cố ý), sau đó ghi 95 bản ghi sạch thành công vào `out.jsonl`.
 
 ## Công Cụ Kiểm Tra Chất Lượng Mã Nguồn
 

@@ -5,8 +5,10 @@ description = "A standard AI app workspace with uv, Ruff, and mypy"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "httpx>=0.28.0",
     "pydantic>=2.10.0",
     "pydantic-settings>=2.7.0",
+    "tenacity>=9.0.0",
 ]
 
 [dependency-groups]
@@ -16,6 +18,7 @@ dev = [
 ]
 
 [tool.ruff]
+cache-dir = ".venv/.ruff_cache"
 line-length = 88
 target-version = "py313"
 
@@ -30,6 +33,7 @@ select = [
 ]
 
 [tool.mypy]
+cache_dir = ".venv/.mypy_cache"
 python_version = "3.13"
 strict = true
 warn_unused_configs = true
