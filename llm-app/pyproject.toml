@@ -5,9 +5,13 @@ description = "A standard AI app workspace with uv, Ruff, and mypy"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "anthropic>=0.116.0",
+    "google-generativeai>=0.8.6",
     "httpx>=0.28.0",
+    "openai>=2.45.0",
     "pydantic>=2.10.0",
     "pydantic-settings>=2.7.0",
+    "rich>=15.0.0",
     "tenacity>=9.0.0",
 ]
 

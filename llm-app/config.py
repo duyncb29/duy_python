@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     collector_semaphore_limit: int = 10
     collector_timeout_seconds: int = 10
 
+    # Topic 4 - Model Comparison Keys
+    openrouter_api_key: SecretStr | None = None
+    openai_api_key: SecretStr | None = None
+    gemini_api_key: SecretStr | None = None
+    anthropic_api_key: SecretStr | None = None
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
