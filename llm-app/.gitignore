@@ -4,4 +4,5 @@ out.jsonl
 __pycache__/
 .mypy_cache/
 .ruff_cache/
+chroma_db/
 
