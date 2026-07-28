@@ -2,9 +2,10 @@ import ast
 import json
 import operator
 import sys
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from rich import box
 from rich.console import Console
 from rich.panel import Panel
@@ -53,10 +54,14 @@ def calculate(expression: str) -> dict[str, Any]:
                 return allowed_operators[op_type](operand)
             raise ValueError(f"Toán tử {op_type.__name__} không được hỗ trợ.")
         else:
-            raise ValueError("Biểu thức toán học chứa ký tự hoặc cấu trúc không an toàn.")
+            raise ValueError(
+                "Biểu thức toán học chứa ký tự hoặc cấu trúc không an toàn."
+            )
 
     # Làm sạch biểu thức
-    clean_expr = expression.replace("x", "*").replace("X", "*").replace(":", "/").strip()
+    clean_expr = (
+        expression.replace("x", "*").replace("X", "*").replace(":", "/").strip()
+    )
     parsed_ast = ast.parse(clean_expr, mode="eval")
     result_val = eval_node(parsed_ast.body)
 
@@ -111,7 +116,9 @@ def get_weather(city: str) -> dict[str, Any]:
             return data
 
     # Nếu không tìm thấy thành phố trong DB -> Ném ra lỗi để test Requirement #6 (Tool error handling)
-    raise ValueError(f"Không tìm thấy dữ liệu thời tiết cho thành phố '{city}'. Vui lòng thử 'Hà Nội', 'TP.HCM' hoặc 'Đà Nẵng'.")
+    raise ValueError(
+        f"Không tìm thấy dữ liệu thời tiết cho thành phố '{city}'. Vui lòng thử 'Hà Nội', 'TP.HCM' hoặc 'Đà Nẵng'."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -190,8 +197,14 @@ def mock_assistant_step(
         tool_calls: list[MockToolCall] = []
 
         # Kiểm tra nếu câu hỏi cần get_weather
-        if "thời tiết" in last_content.lower() or "thời tiết" in str(messages[0].get("content", "")).lower():
-            if "hà nội" in last_content.lower() or "hà nội" in str(messages[0].get("content", "")).lower():
+        if (
+            "thời tiết" in last_content.lower()
+            or "thời tiết" in str(messages[0].get("content", "")).lower()
+        ):
+            if (
+                "hà nội" in last_content.lower()
+                or "hà nội" in str(messages[0].get("content", "")).lower()
+            ):
                 tool_calls.append(
                     MockToolCall(
                         id="call_weather_1",
@@ -199,7 +212,11 @@ def mock_assistant_step(
                         arguments={"city": "Hà Nội"},
                     )
                 )
-            if "tp.hcm" in last_content.lower() or "hồ chí minh" in last_content.lower() or "tp.hcm" in str(messages[0].get("content", "")).lower():
+            if (
+                "tp.hcm" in last_content.lower()
+                or "hồ chí minh" in last_content.lower()
+                or "tp.hcm" in str(messages[0].get("content", "")).lower()
+            ):
                 tool_calls.append(
                     MockToolCall(
                         id="call_weather_2",
@@ -207,7 +224,10 @@ def mock_assistant_step(
                         arguments={"city": "TP.HCM"},
                     )
                 )
-            if "đà nẵng" in last_content.lower() or "đà nẵng" in str(messages[0].get("content", "")).lower():
+            if (
+                "đà nẵng" in last_content.lower()
+                or "đà nẵng" in str(messages[0].get("content", "")).lower()
+            ):
                 tool_calls.append(
                     MockToolCall(
                         id="call_weather_3",
@@ -217,10 +237,17 @@ def mock_assistant_step(
                 )
 
         # Kiểm tra nếu câu hỏi cần calculate
-        if any(char in last_content for char in ["+", "*", "/", "tính"]) or any(char in str(messages[0].get("content", "")) for char in ["+", "*", "/", "tính"]):
-            if "100 / 0" in last_content or "100 / 0" in str(messages[0].get("content", "")):
+        if any(char in last_content for char in ["+", "*", "/", "tính"]) or any(
+            char in str(messages[0].get("content", ""))
+            for char in ["+", "*", "/", "tính"]
+        ):
+            if "100 / 0" in last_content or "100 / 0" in str(
+                messages[0].get("content", "")
+            ):
                 expr = "100 / 0"
-            elif "250 * 4 + 1500" in last_content or "250 * 4 + 1500" in str(messages[0].get("content", "")):
+            elif "250 * 4 + 1500" in last_content or "250 * 4 + 1500" in str(
+                messages[0].get("content", "")
+            ):
                 expr = "250 * 4 + 1500"
             else:
                 expr = "(250 * 4 + 1500) * 2"
@@ -237,8 +264,17 @@ def mock_assistant_step(
             return None, tool_calls
 
     # Lượt 2+: Đã có kết quả tool -> Tổng hợp câu trả lời cuối
-    weather_results = [m for m in messages if m.get("role") == "tool" and "city" in m.get("content", "")]
-    calc_results = [m for m in messages if m.get("role") == "tool" and ("result" in m.get("content", "") or "Lỗi" in m.get("content", ""))]
+    weather_results = [
+        m
+        for m in messages
+        if m.get("role") == "tool" and "city" in m.get("content", "")
+    ]
+    calc_results = [
+        m
+        for m in messages
+        if m.get("role") == "tool"
+        and ("result" in m.get("content", "") or "Lỗi" in m.get("content", ""))
+    ]
 
     final_text_parts = []
     if weather_results:
@@ -249,8 +285,10 @@ def mock_assistant_step(
             final_text_parts.append(f"• Kết quả tính toán: {c['content']}")
 
     if final_text_parts:
-        return "Dựa trên dữ liệu thực tế từ các tool:\n" + "\n".join(final_text_parts), []
-    
+        return "Dựa trên dữ liệu thực tế từ các tool:\n" + "\n".join(
+            final_text_parts
+        ), []
+
     return "Tôi đã xử lý xong yêu cầu của bạn.", []
 
 
@@ -270,7 +308,13 @@ async def run_assistant(
     - Hỗ trợ xử lý >= 2 tool / lượt (Requirement #5).
     - Hỗ trợ xử lý lỗi tool mà không bị crash (Requirement #6).
     """
-    console.print(Panel(f"[bold white]❓ CÂU HỎI NGƯỜI DÙNG:[/bold white]\n[yellow]{user_query}[/yellow]", title="USER INPUT", border_style="cyan"))
+    console.print(
+        Panel(
+            f"[bold white]❓ CÂU HỎI NGƯỜI DÙNG:[/bold white]\n[yellow]{user_query}[/yellow]",
+            title="USER INPUT",
+            border_style="cyan",
+        )
+    )
 
     messages: list[dict[str, Any]] = [
         {
@@ -289,12 +333,18 @@ async def run_assistant(
 
     while turn < max_turns:
         turn += 1
-        console.print(f"\n[bold magenta]🔄 --- VÒNG LẶP TOOL CALLING (LƯỢT {turn}) ---[/bold magenta]")
+        console.print(
+            f"\n[bold magenta]🔄 --- VÒNG LẶP TOOL CALLING (LƯỢT {turn}) ---[/bold magenta]"
+        )
 
         tool_calls_to_process = []
         assistant_text: str | None = None
 
-        if use_real_api and settings.openrouter_api_key and settings.openrouter_api_key.get_secret_value():
+        if (
+            use_real_api
+            and settings.openrouter_api_key
+            and settings.openrouter_api_key.get_secret_value()
+        ):
             from openai import AsyncOpenAI
 
             client = AsyncOpenAI(
@@ -343,7 +393,9 @@ async def run_assistant(
                             "type": "function",
                             "function": {
                                 "name": mc.function_name,
-                                "arguments": json.dumps(mc.arguments, ensure_ascii=False),
+                                "arguments": json.dumps(
+                                    mc.arguments, ensure_ascii=False
+                                ),
                             },
                         }
                         for mc in mock_calls
@@ -354,10 +406,14 @@ async def run_assistant(
 
         # Stop condition: Model không yêu cầu gọi tool nữa (trả lời cuối)
         if not tool_calls_to_process:
-            console.print("[green]✔ Model không yêu cầu gọi tool nào nữa. Kết thúc vòng lặp![/green]")
+            console.print(
+                "[green]✔ Model không yêu cầu gọi tool nào nữa. Kết thúc vòng lặp![/green]"
+            )
             break
 
-        console.print(f"[bold yellow]⚙️ Model yêu cầu gọi {len(tool_calls_to_process)} tool(s) cùng lúc:[/bold yellow]")
+        console.print(
+            f"[bold yellow]⚙️ Model yêu cầu gọi {len(tool_calls_to_process)} tool(s) cùng lúc:[/bold yellow]"
+        )
 
         # 5. Duyệt HẾT các tool call được yêu cầu trong lượt (Requirement #5)
         for tc in tool_calls_to_process:
@@ -372,7 +428,9 @@ async def run_assistant(
                 func_name = tc.function_name
                 args = tc.arguments
 
-            console.print(f"  👉 [cyan]Tool:[/cyan] [bold]{func_name}[/bold] | [cyan]ID:[/cyan] {tc_id} | [cyan]Args:[/cyan] {args}")
+            console.print(
+                f"  👉 [cyan]Tool:[/cyan] [bold]{func_name}[/bold] | [cyan]ID:[/cyan] {tc_id} | [cyan]Args:[/cyan] {args}"
+            )
 
             # 3. Dispatch theo tên & 6. Xử lý lỗi tool (Requirement #3 & #6)
             tool_result_content = ""
@@ -384,12 +442,16 @@ async def run_assistant(
                 real_func = TOOLS_DISPATCH[func_name]
                 execution_output = real_func(**args)
                 tool_result_content = json.dumps(execution_output, ensure_ascii=False)
-                console.print(f"     [bold green]✓ Kết quả:[/bold green] {tool_result_content}")
+                console.print(
+                    f"     [bold green]✓ Kết quả:[/bold green] {tool_result_content}"
+                )
 
             except Exception as e:
                 # Bắt lỗi, trả thông báo rõ cho model, KHÔNG CRASH chướng trình (Requirement #6)
                 tool_result_content = f"Lỗi thực thi tool '{func_name}': {str(e)}"
-                console.print(f"     [bold red]✗ Lỗi Tool (Đã xử lý an toàn):[/bold red] {tool_result_content}")
+                console.print(
+                    f"     [bold red]✗ Lỗi Tool (Đã xử lý an toàn):[/bold red] {tool_result_content}"
+                )
 
             # Append kết quả tool vào message history với role="tool" và tool_call_id khớp đúng
             messages.append(
@@ -430,12 +492,18 @@ async def main() -> None:
     )
 
     settings = Settings()
-    use_real_api = bool(settings.openrouter_api_key and settings.openrouter_api_key.get_secret_value())
+    use_real_api = bool(
+        settings.openrouter_api_key and settings.openrouter_api_key.get_secret_value()
+    )
 
     if use_real_api:
-        console.print("[green]✔ Đã tìm thấy OPENROUTER_API_KEY trong .env. Đang chạy qua OpenRouter API...[/green]")
+        console.print(
+            "[green]✔ Đã tìm thấy OPENROUTER_API_KEY trong .env. Đang chạy qua OpenRouter API...[/green]"
+        )
     else:
-        console.print("[yellow]⚠ Chưa cấu hình OPENROUTER_API_KEY. Đang chạy chế độ Mock Engine để test 100% Tool Loop & Xử lý lỗi...[/yellow]")
+        console.print(
+            "[yellow]⚠ Chưa cấu hình OPENROUTER_API_KEY. Đang chạy chế độ Mock Engine để test 100% Tool Loop & Xử lý lỗi...[/yellow]"
+        )
 
     # -----------------------------------------------------------------------
     # KỊCH BẢN 1: CẦN 1 TOOL (Requirement #7 - Câu 1)
@@ -450,7 +518,9 @@ async def main() -> None:
     # KỊCH BẢN 2: CẦN CẢ 2 TOOLS CÙNG LÚC (Requirement #7 - Câu 2)
     # -----------------------------------------------------------------------
     console.print("\n" + "=" * 80)
-    console.print("[bold blue]📌 KỊCH BẢN 2: CÂU HỎI CẦN CẢ 2 TOOL CÙNG LÚC (PARALLEL TOOL CALLING)[/bold blue]")
+    console.print(
+        "[bold blue]📌 KỊCH BẢN 2: CÂU HỎI CẦN CẢ 2 TOOL CÙNG LÚC (PARALLEL TOOL CALLING)[/bold blue]"
+    )
     console.print("=" * 80)
     query_2 = "Cho mình biết thời tiết ở TP.HCM thế nào và tính giúp mình phép tính 250 * 4 + 1500?"
     await run_assistant(query_2, settings, console, use_real_api)
@@ -459,7 +529,9 @@ async def main() -> None:
     # KỊCH BẢN 3: XỬ LÝ LỖI TOOL AN TOÀN (Requirement #6 - Tool Error Handling)
     # -----------------------------------------------------------------------
     console.print("\n" + "=" * 80)
-    console.print("[bold blue]📌 KỊCH BẢN 3: KIỂM THỬ XỬ LÝ LỖI TOOL (CHIA CHO 0 & KHÔNG CRASH SCRIPT)[/bold blue]")
+    console.print(
+        "[bold blue]📌 KỊCH BẢN 3: KIỂM THỬ XỬ LÝ LỖI TOOL (CHIA CHO 0 & KHÔNG CRASH SCRIPT)[/bold blue]"
+    )
     console.print("=" * 80)
     query_3 = "Tính giúp mình phép chia 100 / 0 và thời tiết tại Đà Nẵng?"
     await run_assistant(query_3, settings, console, use_real_api)
@@ -467,18 +539,44 @@ async def main() -> None:
     # -----------------------------------------------------------------------
     # TỔNG KẾT
     # -----------------------------------------------------------------------
-    summary_table = Table(title="🎯 TỔNG KẾT NGHỆ THUẬT TOOL CALLING (TOPIC 6)", box=box.ROUNDED)
+    summary_table = Table(
+        title="🎯 TỔNG KẾT NGHỆ THUẬT TOOL CALLING (TOPIC 6)", box=box.ROUNDED
+    )
     summary_table.add_column("Yêu cầu đề bài", style="bold cyan")
     summary_table.add_column("Trạng thái", style="bold green")
     summary_table.add_column("Chi tiết triển khai", style="dim")
 
-    summary_table.add_row("1. >= 2 hàm Python thật", "PASSED", "Hàm calculate() & get_weather()")
-    summary_table.add_row("2. Schema cho mỗi tool", "PASSED", "Khai báo OpenAI Tool Schema đầy đủ name/desc/parameters")
-    summary_table.add_row("3. Dispatch theo tên", "PASSED", "Dùng TOOLS_DISPATCH dict gọi đúng hàm")
-    summary_table.add_row("4. Vòng lặp tool calling", "PASSED", "Vòng lặp while lặp tới khi model không xin tool")
-    summary_table.add_row("5. Nhiều tool / lượt", "PASSED", "Duyệt toàn bộ danh sách tool_calls trong 1 turn")
-    summary_table.add_row("6. Xử lý lỗi tool", "PASSED", "Try/except bắt lỗi, gửi thông báo lỗi về role='tool' không crash")
-    summary_table.add_row("7. Chạy thử 2+ câu hỏi", "PASSED", "Đã test kịch bản 1 tool, 2 tool song song & ca lỗi")
+    summary_table.add_row(
+        "1. >= 2 hàm Python thật", "PASSED", "Hàm calculate() & get_weather()"
+    )
+    summary_table.add_row(
+        "2. Schema cho mỗi tool",
+        "PASSED",
+        "Khai báo OpenAI Tool Schema đầy đủ name/desc/parameters",
+    )
+    summary_table.add_row(
+        "3. Dispatch theo tên", "PASSED", "Dùng TOOLS_DISPATCH dict gọi đúng hàm"
+    )
+    summary_table.add_row(
+        "4. Vòng lặp tool calling",
+        "PASSED",
+        "Vòng lặp while lặp tới khi model không xin tool",
+    )
+    summary_table.add_row(
+        "5. Nhiều tool / lượt",
+        "PASSED",
+        "Duyệt toàn bộ danh sách tool_calls trong 1 turn",
+    )
+    summary_table.add_row(
+        "6. Xử lý lỗi tool",
+        "PASSED",
+        "Try/except bắt lỗi, gửi thông báo lỗi về role='tool' không crash",
+    )
+    summary_table.add_row(
+        "7. Chạy thử 2+ câu hỏi",
+        "PASSED",
+        "Đã test kịch bản 1 tool, 2 tool song song & ca lỗi",
+    )
 
     console.print("\n")
     console.print(summary_table)

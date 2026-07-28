@@ -3,12 +3,12 @@ import re
 import sys
 from typing import Literal
 
+import tiktoken
 from pydantic import BaseModel, Field, ValidationError
 from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-import tiktoken
 
 from config import Settings
 
@@ -252,43 +252,68 @@ def mock_predict(user_review: str, prompt_version: str) -> str:
     if prompt_version == "v1":
         # Baseline v1 hay bị đánh lừa bởi từ khóa "nhanh", "chất lượng", "đẹp" trong ca mỉa mai
         if "3 tuần" in review_lower or "2 ngày đã hỏng" in review_lower:
-            return json.dumps({
-                "sentiment": "POSITIVE",
-                "confidence": 0.85,
-                "reasoning": "Có từ 'giao hàng nhanh' / 'chất lượng' (v1 bị lừa bởi sarcasm)",
-            })
+            return json.dumps(
+                {
+                    "sentiment": "POSITIVE",
+                    "confidence": 0.85,
+                    "reasoning": "Có từ 'giao hàng nhanh' / 'chất lượng' (v1 bị lừa bởi sarcasm)",
+                }
+            )
         if "vỏ hộp hơi trầy" in review_lower:
-            return json.dumps({
-                "sentiment": "NEGATIVE",
-                "confidence": 0.70,
-                "reasoning": "Có từ 'trầy nhẹ' (v1 nhìn thấy chê trước)",
-            })
+            return json.dumps(
+                {
+                    "sentiment": "NEGATIVE",
+                    "confidence": 0.70,
+                    "reasoning": "Có từ 'trầy nhẹ' (v1 nhìn thấy chê trước)",
+                }
+            )
 
     # Giả lập phản hồi v2 chuẩn xác
-    if "sao" in review_lower or "ngon" in review_lower or "thích" in review_lower or "mát" in review_lower:
+    if (
+        "sao" in review_lower
+        or "ngon" in review_lower
+        or "thích" in review_lower
+        or "mát" in review_lower
+    ):
         if "3 tuần" in review_lower or "chán" in review_lower:
             sentiment = "NEGATIVE"
         else:
             sentiment = "POSITIVE"
-    elif "hỏng" in review_lower or "thất vọng" in review_lower or "lừa đảo" in review_lower or "phí tiền" in review_lower or "3 tuần" in review_lower:
+    elif (
+        "hỏng" in review_lower
+        or "thất vọng" in review_lower
+        or "lừa đảo" in review_lower
+        or "phí tiền" in review_lower
+        or "3 tuần" in review_lower
+    ):
         sentiment = "NEGATIVE"
-    elif "hỏi" in review_lower or "không shop" in review_lower or "bình thường" in review_lower or "chưa dùng" in review_lower or "tạm ổn" in review_lower or "giang hồ" in review_lower:
+    elif (
+        "hỏi" in review_lower
+        or "không shop" in review_lower
+        or "bình thường" in review_lower
+        or "chưa dùng" in review_lower
+        or "tạm ổn" in review_lower
+        or "giang hồ" in review_lower
+    ):
         sentiment = "NEUTRAL"
     else:
         sentiment = "POSITIVE"
 
-    return json.dumps({
-        "sentiment": sentiment,
-        "confidence": 0.95,
-        "reasoning": f"Giả lập dự đoán cho '{user_review[:20]}...'",
-    })
+    return json.dumps(
+        {
+            "sentiment": sentiment,
+            "confidence": 0.95,
+            "reasoning": f"Giả lập dự đoán cho '{user_review[:20]}...'",
+        }
+    )
 
 
-async def call_openrouter(
-    prompt: str, settings: Settings
-) -> str:
+async def call_openrouter(prompt: str, settings: Settings) -> str:
     """Gọi OpenRouter API thực tế bằng model :free (Topic 4)."""
-    if not settings.openrouter_api_key or not settings.openrouter_api_key.get_secret_value():
+    if (
+        not settings.openrouter_api_key
+        or not settings.openrouter_api_key.get_secret_value()
+    ):
         raise ValueError("Thiếu OPENROUTER_API_KEY")
 
     from openai import AsyncOpenAI
@@ -458,7 +483,9 @@ def display_detail_table(console: Console, report: EvaluationReport) -> None:
             status_str = "[bold red]FAIL[/bold red]"
             pred_str = f"[red]{r.predicted}[/red]"
 
-        review_short = r.user_review if len(r.user_review) <= 32 else r.user_review[:30] + "..."
+        review_short = (
+            r.user_review if len(r.user_review) <= 32 else r.user_review[:30] + "..."
+        )
 
         table.add_row(
             r.test_id,
@@ -488,7 +515,11 @@ def display_comparison_summary(
     table.add_column("Mức độ Cải thiện", justify="center", style="bold cyan", width=20)
 
     acc_diff = report_v2.accuracy - report_v1.accuracy
-    acc_diff_str = f"[bold green]+{acc_diff:.1f}%[/bold green]" if acc_diff > 0 else f"{acc_diff:.1f}%"
+    acc_diff_str = (
+        f"[bold green]+{acc_diff:.1f}%[/bold green]"
+        if acc_diff > 0
+        else f"{acc_diff:.1f}%"
+    )
 
     table.add_row(
         "Độ chính xác (Accuracy)",
@@ -524,7 +555,9 @@ def display_comparison_summary(
     console.print(table)
 
     # Đưa ra kết luận giữ bản tốt hơn
-    best_version = "Prompt v2" if report_v2.accuracy >= report_v1.accuracy else "Prompt v1"
+    best_version = (
+        "Prompt v2" if report_v2.accuracy >= report_v1.accuracy else "Prompt v1"
+    )
     summary_panel = Panel(
         f"[bold green]🏆 KẾT LUẬN: GIỮ BẢN {best_version.upper()}[/bold green]\n\n"
         f"• Prompt v2 nâng độ chính xác từ [bold red]{report_v1.accuracy:.1f}%[/bold red] lên [bold green]{report_v2.accuracy:.1f}%[/bold green].\n"
@@ -558,11 +591,15 @@ async def main() -> None:
 
     # Tải cấu hình từ .env
     settings = Settings()
-    has_api_key = bool(settings.openrouter_api_key and settings.openrouter_api_key.get_secret_value())
+    has_api_key = bool(
+        settings.openrouter_api_key and settings.openrouter_api_key.get_secret_value()
+    )
 
     use_real_api = False
     if has_api_key:
-        console.print("[green]✔ Đã tìm thấy OPENROUTER_API_KEY trong .env. Đang chạy kiểm thử qua OpenRouter API...[/green]\n")
+        console.print(
+            "[green]✔ Đã tìm thấy OPENROUTER_API_KEY trong .env. Đang chạy kiểm thử qua OpenRouter API...[/green]\n"
+        )
         use_real_api = True
     else:
         console.print(
@@ -572,12 +609,18 @@ async def main() -> None:
 
     # 1. Chạy đánh giá Prompt v1 (Baseline)
     console.print("[bold cyan]▶ Đang chạy Đánh giá Prompt v1 (Baseline)...[/bold cyan]")
-    report_v1 = await evaluate_prompt_version("v1", PROMPT_V1_BASELINE, TEST_DATASET, settings, use_real_api)
+    report_v1 = await evaluate_prompt_version(
+        "v1", PROMPT_V1_BASELINE, TEST_DATASET, settings, use_real_api
+    )
     display_detail_table(console, report_v1)
 
     # 2. Chạy đánh giá Prompt v2 (Improved)
-    console.print("\n[bold cyan]▶ Đang chạy Đánh giá Prompt v2 (Improved with Few-Shot & Sarcasm Rules)...[/bold cyan]")
-    report_v2 = await evaluate_prompt_version("v2", PROMPT_V2_IMPROVED, TEST_DATASET, settings, use_real_api)
+    console.print(
+        "\n[bold cyan]▶ Đang chạy Đánh giá Prompt v2 (Improved with Few-Shot & Sarcasm Rules)...[/bold cyan]"
+    )
+    report_v2 = await evaluate_prompt_version(
+        "v2", PROMPT_V2_IMPROVED, TEST_DATASET, settings, use_real_api
+    )
     display_detail_table(console, report_v2)
 
     # 3. In bảng so sánh đối chiếu v1 vs v2

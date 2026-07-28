@@ -16,8 +16,10 @@ from config import Settings
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
+
 class MockEmbeddings(Embeddings):
     """Mô hình tạo vector embedding giả lập (1536 dims) có tính chất ĐƠN TRỊ (Deterministic) để chạy offline."""
+
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         return [self._embed(text) for text in texts]
 
@@ -26,7 +28,10 @@ class MockEmbeddings(Embeddings):
 
     def _embed(self, text: str) -> list[float]:
         import numpy as np
-        words = text.lower().replace(",", " ").replace(".", " ").replace("?", " ").split()
+
+        words = (
+            text.lower().replace(",", " ").replace(".", " ").replace("?", " ").split()
+        )
         vector = np.zeros(1536, dtype=np.float32)
         for w in words:
             if len(w) > 1:
@@ -38,6 +43,7 @@ class MockEmbeddings(Embeddings):
         if norm > 0:
             vector = vector / norm
         return vector.tolist()
+
 
 class MockChatModel(BaseChatModel):
     """Hệ thống LLM giả lập offline phục vụ chấm điểm và chạy thử nghiệm grounding."""
@@ -76,7 +82,12 @@ class MockChatModel(BaseChatModel):
                 answer = "Thiết bị SmartChef X hỗ trợ kết nối Wifi băng tần 2.4GHz để điều khiển từ xa."
             else:
                 answer = "Tôi không tìm thấy thông tin này trong tài liệu."
-        elif "quá nhiệt" in q_lower or "lỗi e1" in q_lower or "e1" in q_lower or "khắc phục" in q_lower:
+        elif (
+            "quá nhiệt" in q_lower
+            or "lỗi e1" in q_lower
+            or "e1" in q_lower
+            or "khắc phục" in q_lower
+        ):
             if "e1" in context.lower():
                 answer = (
                     "Khi xuất hiện mã lỗi E1 (nồi bị quá nhiệt vượt mức 200 độ C do thiếu nước hoặc cháy khét đáy), "
@@ -90,7 +101,12 @@ class MockChatModel(BaseChatModel):
                 answer = "Chế độ Slow Cook của SmartChef X duy trì nhiệt độ ổn định ở mức 85-90 độ C trong thời gian dài từ 2 đến 8 giờ."
             else:
                 answer = "Tôi không tìm thấy thông tin này trong tài liệu."
-        elif "pháp" in q_lower or "thủ đô" in q_lower or "thời tiết" in q_lower or "tổng thống" in q_lower:
+        elif (
+            "pháp" in q_lower
+            or "thủ đô" in q_lower
+            or "thời tiết" in q_lower
+            or "tổng thống" in q_lower
+        ):
             answer = "Tôi không tìm thấy thông tin này trong tài liệu."
         else:
             answer = "Tôi không tìm thấy thông tin này trong tài liệu."
@@ -103,10 +119,17 @@ class MockChatModel(BaseChatModel):
     def _llm_type(self) -> str:
         return "mock-chat-model"
 
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Hỏi đáp RAG bằng LangChain và Chroma DB")
-    parser.add_argument("--run-tests", action="store_true", help="Chạy thử nghiệm 3 câu hỏi bắt buộc")
-    parser.add_argument("--k", type=int, default=3, help="Số lượng chunks ngữ cảnh cần lấy")
+    parser = argparse.ArgumentParser(
+        description="Hỏi đáp RAG bằng LangChain và Chroma DB"
+    )
+    parser.add_argument(
+        "--run-tests", action="store_true", help="Chạy thử nghiệm 3 câu hỏi bắt buộc"
+    )
+    parser.add_argument(
+        "--k", type=int, default=3, help="Số lượng chunks ngữ cảnh cần lấy"
+    )
     args = parser.parse_known_args()[0]
 
     persist_dir = "chroma_db"
@@ -154,37 +177,34 @@ def main() -> None:
 
     if provider == "openai":
         from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
         embeddings = OpenAIEmbeddings(
-            model="text-embedding-3-small",
-            openai_api_key=openai_key
+            model="text-embedding-3-small", openai_api_key=openai_key
         )
-        llm = ChatOpenAI(
-            model="gpt-4o",
-            temperature=0,
-            openai_api_key=openai_key
-        )
+        llm = ChatOpenAI(model="gpt-4o", temperature=0, openai_api_key=openai_key)
     elif provider == "gemini":
-        from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+        from langchain_google_genai import (
+            ChatGoogleGenerativeAI,
+            GoogleGenerativeAIEmbeddings,
+        )
+
         embeddings = GoogleGenerativeAIEmbeddings(
-            model="models/text-embedding-004",
-            google_api_key=gemini_key
+            model="models/text-embedding-004", google_api_key=gemini_key
         )
         llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
-            temperature=0,
-            google_api_key=gemini_key
+            model="gemini-1.5-flash", temperature=0, google_api_key=gemini_key
         )
     else:
         embeddings = MockEmbeddings()
         llm = MockChatModel()
-        print("[LLM] [Chế độ giả lập] Không có API Key thực tế. Sử dụng Mock Chat Model offline.")
+        print(
+            "[LLM] [Chế độ giả lập] Không có API Key thực tế. Sử dụng Mock Chat Model offline."
+        )
 
     # 4. Mở Chroma vector store đã lưu (không embed lại tài liệu)
     from langchain_chroma import Chroma
-    vector_store = Chroma(
-        persist_directory=persist_dir,
-        embedding_function=embeddings
-    )
+
+    vector_store = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
 
     # 5. Xây dựng Retriever
     retriever = vector_store.as_retriever(search_kwargs={"k": args.k})
@@ -218,7 +238,7 @@ def main() -> None:
             page = doc.metadata.get("page", 0) + 1
             source = os.path.basename(doc.metadata.get("source", "Tài liệu"))
             formatted.append(
-                f"[Đoạn {i+1} - Nguồn: {source} (Trang {page})]:\n{doc.page_content}"
+                f"[Đoạn {i + 1} - Nguồn: {source} (Trang {page})]:\n{doc.page_content}"
             )
         return "\n\n".join(formatted)
 
@@ -229,10 +249,9 @@ def main() -> None:
         | StrOutputParser()
     )
 
-    rag_chain = RunnableParallel({
-        "context": retriever,
-        "question": RunnablePassthrough()
-    }).assign(answer=rag_chain_from_docs)
+    rag_chain = RunnableParallel(
+        {"context": retriever, "question": RunnablePassthrough()}
+    ).assign(answer=rag_chain_from_docs)
 
     # 8. Thực thi hỏi đáp
     if args.run_tests:
@@ -240,7 +259,7 @@ def main() -> None:
         test_questions = [
             "SmartChef X hỗ trợ kết nối Wifi băng tần nào?",
             "Cách xử lý lỗi nồi bị quá nhiệt E1 như thế nào?",
-            "Thủ đô của Pháp là gì?"
+            "Thủ đô của Pháp là gì?",
         ]
 
         for idx, q in enumerate(test_questions, 1):
@@ -250,7 +269,7 @@ def main() -> None:
 
             print(f"Câu trả lời: {result['answer']}")
             print("Nguồn trích dẫn tìm thấy:")
-            for d_idx, doc in enumerate(result['context'], 1):
+            for d_idx, doc in enumerate(result["context"], 1):
                 page = doc.metadata.get("page", 0) + 1
                 source = os.path.basename(doc.metadata.get("source", "Tài liệu"))
                 snippet = doc.page_content.replace("\n", " ")[:100] + "..."
@@ -275,7 +294,7 @@ def main() -> None:
                 print(f"\nTrả lời:\n{result['answer']}")
 
                 print("\n[Nguồn trích dẫn]:")
-                for d_idx, doc in enumerate(result['context'], 1):
+                for d_idx, doc in enumerate(result["context"], 1):
                     page = doc.metadata.get("page", 0) + 1
                     source = os.path.basename(doc.metadata.get("source", "Tài liệu"))
                     print(f"  ({d_idx}) File: {source} (Trang {page})")
@@ -285,6 +304,7 @@ def main() -> None:
                 break
             except Exception as e:
                 print(f"Có lỗi xảy ra: {e}")
+
 
 if __name__ == "__main__":
     main()

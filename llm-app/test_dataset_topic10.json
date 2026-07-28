@@ -1,0 +1,130 @@
+[
+  {
+    "id": 1,
+    "category": "keyword_code",
+    "query": "Làm thế nào để kết nối SmartChef X với Wifi 2.4GHz?",
+    "expected_chunk_ids": [2, 1],
+    "expected_keywords": ["Wifi", "SmartLife", "nhấn giữ", "5 giây"],
+    "ground_truth_answer": "Nhấn giữ nút Wifi trên bảng điều khiển trong 5 giây cho đến khi đèn nháy nhanh, mở app SmartLife và chọn Thêm thiết bị."
+  },
+  {
+    "id": 2,
+    "category": "keyword_code",
+    "query": "Nồi hiển thị chữ E1 trên màn hình OLED thì bị sao và khắc phục thế nào?",
+    "expected_chunk_ids": [7],
+    "expected_keywords": ["quá nhiệt", "200 độ C", "rút phích cắm", "15 phút"],
+    "ground_truth_answer": "Lỗi E1 cảnh báo nồi bị quá nhiệt vượt mức 200 độ C do thiếu nước hoặc dính khét đáy. Xử lý: Rút phích cắm điện ngay, để nguội 15 phút và thêm nước."
+  },
+  {
+    "id": 3,
+    "category": "keyword_code",
+    "query": "Số điện thoại tổng đài 1900-8198 hỗ trợ những khung giờ nào?",
+    "expected_chunk_ids": [10],
+    "expected_keywords": ["1900-8198", "8h00", "21h00", "support@smartchef.vn"],
+    "ground_truth_answer": "Tổng đài 1900-8198 hoạt động từ 8h00 đến 21h00 tất cả các ngày trong tuần."
+  },
+  {
+    "id": 4,
+    "category": "keyword_code",
+    "query": "Thời gian bảo hành của các phụ kiện đi kèm như muỗng và xửng hấp là bao lâu?",
+    "expected_chunk_ids": [5],
+    "expected_keywords": ["12 tháng", "bảo hành", "phụ kiện"],
+    "ground_truth_answer": "Phụ kiện đi kèm như muỗng, xửng hấp được bảo hành chính hãng 12 tháng."
+  },
+  {
+    "id": 5,
+    "category": "keyword_code",
+    "query": "Trong bao nhiêu ngày đầu mua sản phẩm thì khách hàng được đổi mới miễn phí nếu bị lỗi phần cứng?",
+    "expected_chunk_ids": [6],
+    "expected_keywords": ["7 ngày", "đổi mới", "miễn phí"],
+    "ground_truth_answer": "Khách hàng được đổi mới miễn phí trong vòng 7 ngày đầu kể từ ngày mua nếu gặp lỗi phần cứng."
+  },
+  {
+    "id": 6,
+    "category": "keyword_code",
+    "query": "Lòng nồi SmartChef X làm bằng chất liệu gì và khay nước ngưng tụ nằm ở đâu?",
+    "expected_chunk_ids": [4],
+    "expected_keywords": ["chống dính gốm", "mặt sau", "nước ngưng tụ"],
+    "ground_truth_answer": "Lòng nồi được phủ lớp chống dính gốm cao cấp. Khay nước ngưng tụ nằm ở mặt sau của nồi."
+  },
+  {
+    "id": 7,
+    "category": "semantic_gap",
+    "query": "Làm sao để ninh xương hay kho cá từ từ trong nhiều giờ mà đồ ăn không bị mất chất dinh dưỡng?",
+    "expected_chunk_ids": [8],
+    "expected_keywords": ["Slow Cook", "85-90 độ C", "2 đến 8 giờ", "hầm xương", "kho cá"],
+    "ground_truth_answer": "Sử dụng chế độ nấu chậm Slow Cook duy trì nhiệt độ 85-90 độ C từ 2 đến 8 giờ giúp giữ trọn vẹn hương vị và dưỡng chất."
+  },
+  {
+    "id": 8,
+    "category": "semantic_gap",
+    "query": "Tôi muốn lấy thêm nhiều món ăn chuẩn bị sẵn hướng dẫn từng bước thì tìm ở đâu và khi nào có bản cập nhật mới?",
+    "expected_chunk_ids": [9],
+    "expected_keywords": ["SmartLife", "ngày 1 hàng tháng", "công thức"],
+    "ground_truth_answer": "Tải thêm hàng trăm công thức trên ứng dụng SmartLife, các công thức mới được cập nhật tự động vào ngày 1 hàng tháng."
+  },
+  {
+    "id": 9,
+    "category": "semantic_gap",
+    "query": "Khi đang đun nóng bằng hơi nước áp suất cao thì làm thế nào để đảm bảo không bị bỏng khi mở?",
+    "expected_chunk_ids": [3],
+    "expected_keywords": ["Sealing", "cột chỉ thị màu đỏ", "hạ áp suất", "xả áp thủ công"],
+    "ground_truth_answer": "Van xả phải ở vị trí Sealing, không cố mở khi cột chỉ thị màu đỏ vẫn nổi, chờ hạ áp suất hoặc nhấn nút xả áp thủ công trước khi mở."
+  },
+  {
+    "id": 10,
+    "category": "semantic_gap",
+    "query": "Nồi này có tổng cộng bao nhiêu món tự nấu và kết nối không dây sóng gì?",
+    "expected_chunk_ids": [1],
+    "expected_keywords": ["15 chế độ", "OLED", "2.4GHz"],
+    "ground_truth_answer": "SmartChef X có hơn 15 chế độ nấu tự động và hỗ trợ Wifi băng tần 2.4GHz."
+  },
+  {
+    "id": 11,
+    "category": "semantic_gap",
+    "query": "Nếu máy bị hỏng bo mạch điều khiển hoặc cảm biến nhiệt thì được sửa miễn phí trong bao lâu?",
+    "expected_chunk_ids": [5],
+    "expected_keywords": ["24 tháng", "lỗi phần cứng", "cảm biến nhiệt"],
+    "ground_truth_answer": "Máy được bảo hành chính hãng 24 tháng đối với lỗi phần cứng như hỏng bảng điều khiển hoặc cảm biến nhiệt."
+  },
+  {
+    "id": 12,
+    "category": "semantic_gap",
+    "query": "Dùng chùi rửa kim loại giẻ sắt chà lòng nồi có được không?",
+    "expected_chunk_ids": [4],
+    "expected_keywords": ["không dùng búi sắt", "bọt biển mềm", "nước ấm"],
+    "ground_truth_answer": "Tuyệt đối không dùng búi sắt hoặc chất tẩy rửa mạnh; chỉ dùng bọt biển mềm, nước ấm và xà phòng dịu nhẹ."
+  },
+  {
+    "id": 13,
+    "category": "keyword_code",
+    "query": "Địa chỉ email gửi phản hồi hỗ trợ của SmartChef là gì?",
+    "expected_chunk_ids": [10],
+    "expected_keywords": ["support@smartchef.vn"],
+    "ground_truth_answer": "Email hỗ trợ kỹ thuật trực tiếp là support@smartchef.vn."
+  },
+  {
+    "id": 14,
+    "category": "semantic_gap",
+    "query": "Muốn bật chế độ quét tìm thiết bị nhà thông minh trên điện thoại thì bấm nút gì trên máy?",
+    "expected_chunk_ids": [2],
+    "expected_keywords": ["nhấn giữ nút Wifi", "5 giây", "SmartLife"],
+    "ground_truth_answer": "Nhấn giữ nút Wifi trên bảng điều khiển trong 5 giây cho đến khi đèn báo nháy nhanh, sau đó mở app SmartLife chọn Thêm thiết bị."
+  },
+  {
+    "id": 15,
+    "category": "keyword_code",
+    "query": "Nhiệt độ tối đa làm nồi ngắt báo lỗi E1 là bao nhiêu độ C?",
+    "expected_chunk_ids": [7],
+    "expected_keywords": ["200 độ C", "E1"],
+    "ground_truth_answer": "Nhiệt độ lòng nồi vượt mức 200 độ C sẽ kích hoạt cảnh báo lỗi E1."
+  },
+  {
+    "id": 16,
+    "category": "semantic_gap",
+    "query": "Trường hợp mua về không ưng ý muốn trả lại máy không bị lỗi thì chính sách thế nào?",
+    "expected_chunk_ids": [6],
+    "expected_keywords": ["đổi mới", "lỗi phần cứng kỹ thuật"],
+    "ground_truth_answer": "Chính sách đổi mới miễn phí trong 7 ngày áp dụng với sản phẩm bị lỗi phần cứng kỹ thuật do trung tâm bảo hành xác nhận."
+  }
+]
