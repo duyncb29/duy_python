@@ -174,7 +174,7 @@ def output_guard(result: ClassificationResult) -> ClassificationResult:
 
 
 class MockChatCompletions:
-    def __init__(self):
+    def __init__(self) -> None:
         self.call_count = 0
 
     def create(
@@ -298,7 +298,7 @@ class MockChatCompletions:
 
 
 class MockInstructorClient:
-    def __init__(self):
+    def __init__(self) -> None:
         self.chat = type("MockChat", (), {"completions": MockChatCompletions()})()
 
 
@@ -335,15 +335,16 @@ def classify_ticket(
         or settings.openai_api_key
     )
 
+    client: Any
     if use_real:
         # Xác định provider để khởi tạo
         if settings.gemini_api_key:
             import google.generativeai as genai
 
-            genai.configure(api_key=settings.gemini_api_key.get_secret_value())
+            genai.configure(api_key=settings.gemini_api_key.get_secret_value())  # type: ignore[attr-defined]
             # Sử dụng instructor patch cho Gemini
             client = instructor.from_gemini(
-                client=genai.GenerativeModel(model_name="gemini-1.5-flash")
+                client=genai.GenerativeModel(model_name="gemini-1.5-flash")  # type: ignore[attr-defined]
             )
             model_name = "gemini-1.5-flash"
         elif settings.openai_api_key:
@@ -351,7 +352,7 @@ def classify_ticket(
                 OpenAI(api_key=settings.openai_api_key.get_secret_value())
             )
             model_name = "gpt-4o-mini"
-        else:
+        elif settings.openrouter_api_key:
             client = instructor.from_openai(
                 OpenAI(
                     base_url="https://openrouter.ai/api/v1",
@@ -359,6 +360,9 @@ def classify_ticket(
                 )
             )
             model_name = "google/gemini-2.5-flash:free"
+        else:
+            client = MockInstructorClient()
+            model_name = "mock-engine-model"
     else:
         client = MockInstructorClient()
         model_name = "mock-engine-model"

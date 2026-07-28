@@ -6,7 +6,7 @@ from typing import cast
 
 import numpy as np
 from pydantic import BaseModel, Field
-from rank_bm25 import BM25Okapi
+from rank_bm25 import BM25Okapi  # type: ignore[import-untyped]
 from rich import box
 from rich.console import Console
 from rich.panel import Panel
@@ -230,10 +230,10 @@ async def embed_chunks(
             from openai import AsyncOpenAI
 
             client = AsyncOpenAI(api_key=openai_key.get_secret_value())
-            res = await client.embeddings.create(
+            oai_emb_res = await client.embeddings.create(
                 input=texts, model="text-embedding-3-small"
             )
-            for i, item in enumerate(res.data):
+            for i, item in enumerate(oai_emb_res.data):
                 chunks[i].embedding = item.embedding
             return chunks, "OpenAI API (text-embedding-3-small)"
         except Exception:
@@ -377,7 +377,7 @@ async def generate_rag_answer(
             from openai import AsyncOpenAI
 
             client = AsyncOpenAI(api_key=openai_key.get_secret_value())
-            res = await client.chat.completions.create(
+            oai_chat_res = await client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -385,7 +385,7 @@ async def generate_rag_answer(
                 ],
                 temperature=0.0,
             )
-            return res.choices[0].message.content or ""
+            return oai_chat_res.choices[0].message.content or ""
         except Exception:
             pass
 

@@ -24,7 +24,7 @@ def calculate(expression: str) -> dict[str, Any]:
     Hỗ trợ các phép tính +, -, *, /, **, %.
     Bắt lỗi phép chia cho 0 hoặc biểu thức không hợp lệ.
     """
-    allowed_operators = {
+    allowed_operators: dict[type[ast.AST], Any] = {
         ast.Add: operator.add,
         ast.Sub: operator.sub,
         ast.Mult: operator.mul,
@@ -45,14 +45,14 @@ def calculate(expression: str) -> dict[str, Any]:
             if op_type in allowed_operators:
                 if op_type == ast.Div and right == 0:
                     raise ZeroDivisionError("Lỗi toán học: Không thể chia cho 0!")
-                return allowed_operators[op_type](left, right)
+                return float(allowed_operators[op_type](left, right))
             raise ValueError(f"Toán tử {op_type.__name__} không được hỗ trợ.")
         elif isinstance(node, ast.UnaryOp):
             operand = eval_node(node.operand)
-            op_type = type(node.op)
-            if op_type in allowed_operators:
-                return allowed_operators[op_type](operand)
-            raise ValueError(f"Toán tử {op_type.__name__} không được hỗ trợ.")
+            un_op_type = type(node.op)
+            if un_op_type in allowed_operators:
+                return float(allowed_operators[un_op_type](operand))
+            raise ValueError(f"Toán tử {un_op_type.__name__} không được hỗ trợ.")
         else:
             raise ValueError(
                 "Biểu thức toán học chứa ký tự hoặc cấu trúc không an toàn."
@@ -337,7 +337,7 @@ async def run_assistant(
             f"\n[bold magenta]🔄 --- VÒNG LẶP TOOL CALLING (LƯỢT {turn}) ---[/bold magenta]"
         )
 
-        tool_calls_to_process = []
+        tool_calls_to_process: list[Any] = []
         assistant_text: str | None = None
 
         if (
@@ -371,13 +371,13 @@ async def run_assistant(
                         "id": tc.id,
                         "type": "function",
                         "function": {
-                            "name": tc.function.name,
-                            "arguments": tc.function.arguments,
+                            "name": tc.function.name,  # type: ignore[union-attr]
+                            "arguments": tc.function.arguments,  # type: ignore[union-attr]
                         },
                     }
                     for tc in msg.tool_calls
                 ]
-                tool_calls_to_process = msg.tool_calls
+                tool_calls_to_process = list(msg.tool_calls)
             messages.append(msg_dict)
         else:
             # Chạy Mock Predictor cho Tool Loop
@@ -402,7 +402,7 @@ async def run_assistant(
                     ],
                 }
                 messages.append(msg_dict)
-                tool_calls_to_process = mock_calls
+                tool_calls_to_process = list(mock_calls)
 
         # Stop condition: Model không yêu cầu gọi tool nữa (trả lời cuối)
         if not tool_calls_to_process:
